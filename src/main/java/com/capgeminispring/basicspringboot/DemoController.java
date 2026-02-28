@@ -3,8 +3,10 @@ package com.capgeminispring.basicspringboot;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -119,5 +121,38 @@ public class DemoController {
 		}else {
 			return "Data doesn't exist";
 		}
+	}
+	
+//find  by Name (made custom findByName function in the interface EmployeeRepository.
+	@GetMapping("/getbyName/{name}")
+	public Employee getName(@PathVariable String name) {
+		return empJpa.getByName(name);
+	}
+	@GetMapping("/getBySalary/{salary}")
+	public Employee getSalary(@PathVariable double salary) {
+		return empJpa.getBySalary(salary);
+	}
+	
+	@GetMapping("getbytwovalue/{name}/{salary}")
+	public Employee getByNameAndSal(@PathVariable String name,@PathVariable double salary) {
+		return empJpa.getByNameAndSalary(name, salary);
+	}
+	
+//Updating the salary through custom updateBysalary method which is define in the EmployeeRepository.
+	@PutMapping("/updateSalaryCustom/{oldSalary}/{newSalary}")
+	public String updatedBySalary(@PathVariable double oldSalary,@PathVariable double newSalary) {
+		int count= empJpa.updateBySalary(oldSalary, newSalary);
+		if(count>0) {
+			return "Updated the salary";
+		}else {
+			throw new EmployeeNotFoundException("Employee not found with given salary: "+oldSalary);
+		}
+	}
+	
+	//method to handle the exceptions, we can't use try catch direclty, to handle the exception for frontend we use this method.
+	//this is local exception handler which handle the exception within this controller file only where the EmployeeNotFoundException throw 
+	@ExceptionHandler(EmployeeNotFoundException.class)
+	public String handleException(EmployeeNotFoundException ex) {
+		return ex.getMessage();
 	}
 }
